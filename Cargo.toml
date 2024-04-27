@@ -6,8 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-cors = "0.7.0"
 actix-web = "4"
 async-openai = "0.20.0"
 dotenvy = "0.15.7"
+reqwest = "0.12.4"
 rusty_dl = "1.0.8"
 serde = "1.0.198"
+tokio = "1.37.0"

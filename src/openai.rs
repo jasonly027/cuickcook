@@ -1,8 +1,9 @@
 use async_openai::{
-    error::OpenAIError,
+    error::{ApiError, OpenAIError},
     types::{
-        AudioResponseFormat, ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
-        CreateChatCompletionRequestArgs, CreateTranscriptionRequestArgs,
+        AudioResponseFormat, ChatCompletionRequestSystemMessageArgs,
+        ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
+        CreateTranscriptionRequestArgs,
     },
     Client,
 };
@@ -24,6 +25,7 @@ pub async fn summarize_recipe(transcription: &str) -> Result<String, OpenAIError
     let request = CreateChatCompletionRequestArgs::default()
         .model("gpt-3.5-turbo")
         .temperature(0_f32)
+        // .response_format(ChatCompletionResponseFormat { r#type: JsonObject })
         .messages([
             ChatCompletionRequestSystemMessageArgs::default()
                 .content(get_system_message())
@@ -36,38 +38,53 @@ pub async fn summarize_recipe(transcription: &str) -> Result<String, OpenAIError
         ])
         .build()?;
 
+    println!("Summarizing...");
     let response = client.chat().create(request).await?;
-    response.choices.first().and_then(
-        |msg| msg.message.content.clone().and_then(
-            |content| Some(content)
-        )).ok_or(OpenAIError::InvalidArgument("Missing response".to_owned()))
+    response
+        .choices
+        .first()
+        .ok_or(OpenAIError::ApiError(ApiError {
+            message: String::from("Model did not respond."),
+            r#type: None,
+            param: None,
+            code: None,
+        }))?
+        .message
+        .content
+        .clone()
+        .ok_or(OpenAIError::ApiError(ApiError {
+            message: String::from("Model did not respond."),
+            r#type: None,
+            param: None,
+            code: None,
+        }))
 }
 
 fn get_system_message() -> String {
-    r#"You will be provided with the transcription of a video. Presumably, the
-    video is a chef explaining to the viewers how to cook one or more dishes.
-    Find out the ingredients, measurements for the ingredients, and the detailed
-    instructions for cooking the dishes. Provide your output by following the
-    template I'm going to give you. The template is within "///"
-    delimiters and words wrapped in angle brackets are placeholders. Follow the
-    template for each dish in the transcript.
+    String::from(
+        r#"You will be provided with the transcription of a video. Presumably, the
+    video is a chef explaining how to cook one or more dishes. For each dish,
+    identify its name, ingredients with measurements, and detailed step-by-step
+    instructions. Provide your output as an array of JSON objects where each
+    object is a dish. Follow the template I give you and replace the values of
+    each key-value pair with the appropriate information:
 
-    ///
-    <Dish 1>
-    Ingredients:
-    <ingredient and measurement>
-    <ingredient and measurement>
-    ...
-    <ingredient and measurement>
-
-    Instructions:
-    <Step 1>
-    <Step 2>
-    ...
-    <Step 3>
-    ///
+    [
+        {
+            "name": "name of dish",
+            "ingredients": [
+                "ingredient and its measurements",
+                "ingredient and its measurements"
+            ],
+            "instructions": [
+                "first step",
+                "second step"
+            ]
+        }
+    ]
     
-    There is a chance the transcription is not for a cooking video. In that
-    case, disregard the template and simply output
-    "This does not appear to be a cooking video.""#.to_owned()
+    Remember your output must be an array of valid JSON objects and follow the
+    template I gave you. If the transcript is not related to cooking dishes,
+    output an empty array, []. Do not wrap your response in a markdown block."#,
+    )
 }

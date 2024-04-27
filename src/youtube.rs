@@ -2,6 +2,7 @@ use rusty_dl::{errors::DownloadError, youtube::YoutubeDownloader, Downloader};
 
 pub async fn download(video_id: &str) -> Result<String, DownloadError> {
     let link = format!("https://youtu.be/{video_id}/");
+    println!("Link is {}", link);
     let downloader = YoutubeDownloader::new(&link);
     match downloader?
         .with_name(video_id.to_owned())
