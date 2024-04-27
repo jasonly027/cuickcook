@@ -1,0 +1,14 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-cors = "0.7.0"
+actix-web = "4"
+async-openai = "0.20.0"
+dotenvy = "0.15.7"
+reqwest = "0.12.4"
+rusty_dl = "1.0.8"
+serde = "1.0.198"
+tokio = "1.37.0"
