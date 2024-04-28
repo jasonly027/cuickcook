@@ -34,7 +34,6 @@ async fn summarize(form: web::Form<FormData>) -> impl Responder {
     // Extract information from transcript
     match summarize_recipe(&transcription).await {
         Ok(summary) => {
-            println!("{}", summary);
             HttpResponse::Ok().content_type("application/json").body(summary)
         }
         Err(_) => {
