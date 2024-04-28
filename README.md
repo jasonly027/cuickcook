@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="#examples">Examples</a> •
-  <a href="#technologies">Technologies</a>
+  <a href="#examples"><b>Examples</b></a> •
+  <a href="#technologies"><b>Technologies</b></a>
 </p>
 
 <h2 id="examples">🖼️ Examples</h2>
